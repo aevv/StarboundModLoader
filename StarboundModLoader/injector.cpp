@@ -1,9 +1,8 @@
 #include <Windows.h>
 #include <string>
 #include <iostream>
-#include "injector.h"
 
-char* file = "D:\\Code\\SML\\TestHook\\Debug\\TestHook.dll";
+char* file = "D:\\Code\\SML\\StarboundModLoader\\Debug\\TestHook.dll";
 HWND sbHwnd;
 
 BOOL inject(HWND hwnd);
