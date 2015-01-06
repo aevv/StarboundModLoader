@@ -11,15 +11,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{28AA4165-8342-4E88-AC2B-F0592F9E0D3C}</ProjectGuid>
-    <RootNamespace>StarboundModLoader</RootNamespace>
+    <ProjectGuid>{21F41D30-B5EA-4A35-9FF5-2BD1F4426D0C}</ProjectGuid>
+    <RootNamespace>Loader</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v110_xp</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -38,7 +38,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>..\Debug\</OutDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -47,6 +49,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ModuleDefinitionFile>loader.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -61,10 +64,27 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <ModuleDefinitionFile>loader.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="injector.cpp" />
+    <ClCompile Include="disasm-lib\cpu.c" />
+    <ClCompile Include="disasm-lib\disasm.c" />
+    <ClCompile Include="disasm-lib\disasm_x86.c" />
+    <ClCompile Include="disasm-lib\misc.c" />
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="mhook-lib\mhook.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="loader.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="disasm-lib\cpu.h" />
+    <ClInclude Include="disasm-lib\disasm.h" />
+    <ClInclude Include="disasm-lib\disasm_x86.h" />
+    <ClInclude Include="disasm-lib\disasm_x86_tables.h" />
+    <ClInclude Include="disasm-lib\misc.h" />
+    <ClInclude Include="mhook-lib\mhook.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

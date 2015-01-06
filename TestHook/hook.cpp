@@ -17,6 +17,8 @@ typedef void(SBAPI *pInvBar)(void* obj);
 typedef void(SBAPI *pZoom)(void* obj);
 typedef void(SBAPI *pInventory)(void* obj);
 typedef void(SBAPI *pAdmin)(void* obj, bool admin);
+typedef void(SBAPI *pSlider)(void* obj);
+typedef void(SBAPI *pOptionSave)(void* obj);
 
 // Original func vars
 pBack pOrigBack = NULL;
@@ -25,6 +27,8 @@ pInvBar oInvBar = NULL;
 pZoom oZoom = NULL;
 pInventory oInventory = NULL;
 pAdmin oAdmin = NULL;
+pSlider oSlider = NULL;
+pOptionSave oOptionSlave = NULL;
 
 // Our funcs
 void SML toggleDebug(void* obj, void* u);
@@ -33,6 +37,8 @@ void SML invBar(void* obj, void* u);
 void SML zoom(void* obj, void* u);
 void SML inventory(void *obj, void* u);
 void SML admin(void* obj, void* u, bool admin);
+void SML slider(void* obj, void* u);
+void SML saveOptions(void* obj, void* u);
 
 void getHwnd();
 HWND sbHwnd;
@@ -41,9 +47,12 @@ void hook();
 void unhook();
 HMODULE GetCurrentModule();
 void msg(std::string);
+void msg(int);
+HANDLE sbProc;
 
 void* mainInterface;
 void* player;
+BOOL inZoomUpdate = FALSE;
 
 BOOL APIENTRY DllMain(HMODULE hDLL, DWORD reason, LPVOID reserved)
 {
@@ -53,6 +62,7 @@ BOOL APIENTRY DllMain(HMODULE hDLL, DWORD reason, LPVOID reserved)
 	case DLL_PROCESS_ATTACH:
 	{
 							   getHwnd();
+							   sbProc = GetCurrentProcess();
 							   char buffer[256];
 							   int length = 0;
 							   length = GetWindowTextLengthA(sbHwnd);
@@ -93,6 +103,12 @@ void hook()
 
 	oAdmin = (pAdmin)0x0056B750;
 	Mhook_SetHook((PVOID*)&oAdmin, admin);
+
+	oSlider = (pSlider)0x004F65A0;
+	Mhook_SetHook((PVOID*)&oSlider, slider);
+
+	oOptionSlave = (pOptionSave)0x00440AD0;
+	Mhook_SetHook((PVOID*)&oOptionSlave, saveOptions);
 }
 
 void unhook()
@@ -124,11 +140,9 @@ void SML invBar(void* obj, void* u)
 
 void SML zoom(void* obj, void* u)
 {
-	int optionsPtr = (int)obj;
-	std::ostringstream convert;
-	convert << optionsPtr;
-	msg(convert.str());
+	inZoomUpdate = TRUE;
 	oZoom(obj);
+	inZoomUpdate = FALSE;
 }
 
 void SML inventory(void* obj, void* u)
@@ -143,6 +157,40 @@ void SML inventory(void* obj, void* u)
 void SML admin(void* obj, void* u, bool admin)
 {
 	oAdmin(obj, true);
+}
+
+void* sliderAddr;
+
+void SML saveOptions(void* obj, void* u)
+{
+	LPVOID addr = (LPVOID)((DWORD)sliderAddr + 0x00E0);
+	DWORD value;
+	ReadProcessMemory(sbProc, addr, &value, sizeof(value), NULL);
+	msg(value);
+	value = value - 1;
+	msg(value);
+	WriteProcessMemory(sbProc, addr, (LPVOID)value, 1, NULL);
+}
+
+void SML slider(void* obj, void* u)
+{
+	if (inZoomUpdate)
+	{
+		inZoomUpdate = FALSE;
+		sliderAddr = obj;
+	}
+
+	if (sliderAddr == obj)
+	{
+		LPVOID addr = (LPVOID)((DWORD)sliderAddr + 0x00E0);
+		DWORD* value = (DWORD*)addr;
+		msg(*value);
+		*value++;
+		msg(*value);
+		WriteProcessMemory(sbProc, addr, (LPVOID)value, 1, NULL);
+	}
+
+	oSlider(obj);
 }
 
 // Utility
@@ -181,4 +229,11 @@ HMODULE GetCurrentModule()
 void msg(std::string text)
 {
 	MessageBoxA(sbHwnd, text.c_str(), "SML", MB_ICONINFORMATION);
+}
+
+void msg(int number)
+{
+	std::ostringstream stream;
+	stream << number;
+	msg(stream.str());
 }
